@@ -1,0 +1,136 @@
+version: '3.7'
+
+secrets:
+  ca.crt:
+    file: ./secrets/certificate_authority/ca/ca.crt
+  elasticsearch.keystore:
+    file: ./secrets/elasticsearch.keystore
+  elastic-stack-ca.p12:
+    file: ./secrets/certificate_authority/elastic-stack-ca.p12
+  elasticsearch.key:
+    file: ./secrets/certificates/elasticsearch/elasticsearch.key
+  elasticsearch.cert:
+    file: ./secrets/certificates/elasticsearch/elasticsearch.crt
+  kibana.key:
+    file: ./secrets/certificates/kibana/kibana.key
+  kibana.cert:
+    file: ./secrets/certificates/kibana/kibana.crt
+  apm-server.crt:
+    file: ./secrets/certificate_authority/ca/ca.crt
+  apm-server.key:
+    file: ./secrets/certificate_authority/ca/ca.key
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elasticsearchdata:${ELASTIC_DIR}/data
+      - ./elasticsearch/config/elasticsearch.yml:${ELASTIC_DIR}/config/elasticsearch.yml:ro
+    secrets:
+      - source: elasticsearch.keystore
+        target: ${ELASTIC_DIR}/config/elasticsearch.keystore
+      - source: ca.crt
+        target: ${ELASTIC_DIR}/config/ca.crt
+      - source: elasticsearch.cert
+        target: ${ELASTIC_DIR}/config/elasticsearch.crt
+      - source: elasticsearch.key
+        target: ${ELASTIC_DIR}/config/elasticsearch.key
+    environment:
+      - CONFIG_DIR=${ELASTIC_DIR}/config
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert ${ELASTIC_DIR}/config/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elk
+
+  kibana:
+    container_name: kibana
+    hostname: kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    ports:
+      - 5601:5601
+    volumes:
+      - kibanadata:${KIBANA_DIR}/data
+      - ./kibana/config/kibana.yml:${KIBANA_DIR}/config/kibana.yml:ro
+    secrets:
+      - source: ca.crt
+        target: ${KIBANA_DIR}/config/ca.crt
+      - source: kibana.cert
+        target: ${KIBANA_DIR}/config/kibana.crt
+      - source: kibana.key
+        target: ${KIBANA_DIR}/config/kibana.key
+    environment:
+      - CONFIG_DIR=${KIBANA_DIR}/config
+      - KIBANA_USERNAME=kibana_system
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+      - ENCRYPTION_KEY=${XPACK_ENCRYPTION_KEY}
+    mem_limit: ${MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -X POST --cacert ${KIBANA_DIR}/config/ca.crt -u elastic:${ELASTIC_PASSWORD} -H 'Content-Type: application/json' https://elasticsearch:9200/_security/user/kibana_system/_password -d '{\"password\":\"${KIBANA_PASSWORD}\"}' | grep -q '^{}'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - elk
+  
+  apm-server:
+    container_name: apm-server
+    hostname: apm-server
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/apm/apm-server:${STACK_VERSION}
+    ports:
+      - 8200:8200
+    secrets:
+      - source: ca.crt
+        target: ${APM_DIR}/ca.crt
+    command: >
+       apm-server -e
+         -E apm-server.rum.enabled=true
+         -E apm-server.kibana.enabled=false
+         -E output.elasticsearch.hosts=["https://elasticsearch:9200"]
+         -E output.elasticsearch.protocol=https
+         -E output.elasticsearch.username=elastic
+         -E output.elasticsearch.password=elastic
+         -E output.elasticsearch.ssl.verification_mode=full
+         -E output.elasticsearch.ssl.certificate_authorities=${APM_DIR}/ca.crt
+    networks:
+      - elk
+
+volumes:
+  elasticsearchdata:
+  kibanadata:
+
+networks:
+  elk:
+    driver: bridge

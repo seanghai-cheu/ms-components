@@ -1,0 +1,15 @@
+server.name: kibana
+server.host: 0.0.0.0
+
+# Elasticsearch settings
+elasticsearch.hosts: [ "https://elasticsearch:9200" ]
+elasticsearch.ssl.certificateAuthorities: [ "${CONFIG_DIR}/ca.crt" ]
+elasticsearch.username: ${KIBANA_USERNAME}
+elasticsearch.password: ${KIBANA_PASSWORD}
+
+# Elasticsearch monitoring settings
+monitoring.ui.container.elasticsearch.enabled: true
+
+# X-Pack Security
+# xpack.security.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: ${ENCRYPTION_KEY}

@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  certs-elk:
+    container_name: certs-elk
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    command: bash ${ELASTIC_DIR}/config/setup.sh
+    user: "0"
+    volumes:
+      - ./secrets:/secrets/
+      - ./setup/setup.sh:${ELASTIC_DIR}/config/setup.sh
+      - ./setup/instances.yml:${ELASTIC_DIR}/config/instances.yml:ro
+    environment: 
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f secrets/elasticsearch.keystore ]"]
+      interval: 1s
+      timeout: 5s
+      retries: 120
