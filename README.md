@@ -28,7 +28,7 @@ In order to use this project, you must first include the following in a file nam
 Start all components
 
 ```bash
-ms.sh start
+./ms.sh start
 ```
 
 Stop all components
