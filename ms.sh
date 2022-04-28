@@ -61,13 +61,6 @@ stop_database_server()
     printf "::::::::::::::::::: STOPPED DATABASE SERVER \n";
 }
 
-stop_service_tracing()
-{
-    printf "\n\n::::::::::::::::::: STOPPING SERVICE TRACING \n";
-    docker-compose -f service-tracing/docker-compose.yml down --remove-orphans
-    printf "::::::::::::::::::: STOPPED SERVICE TRACING \n";
-}
-
 stop_message_broker()
 {
     printf "\n\n::::::::::::::::::: STOPPING MESSAGE BROKER \n";
@@ -75,13 +68,20 @@ stop_message_broker()
     printf "::::::::::::::::::: STOPPED MESSAGE BROKER \n";
 }
 
+stop_service_tracing()
+{
+    printf "\n\n::::::::::::::::::: STOPPING SERVICE TRACING \n";
+    docker-compose -f service-tracing/docker-compose.yml down --remove-orphans
+    printf "::::::::::::::::::: STOPPED SERVICE TRACING \n";
+}
+
 stop_all()
 {
     stop_config_server
     stop_service_discovery
     stop_database_server
-    stop_service_tracing
     stop_message_broker
+    stop_service_tracing
 }
 
 start_all()
@@ -89,8 +89,8 @@ start_all()
     start_config_server
     start_service_discovery
     start_database_server
-    start_service_tracing
     start_message_broker
+    start_service_tracing
 }
 
 help()

@@ -10,9 +10,9 @@ services:
     volumes:
       - postgresdata:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=hello
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   pgadmin:
     container_name: pgadmin
@@ -23,8 +23,8 @@ services:
     volumes:
       - pgadmindata:/var/lib/pgadmin
     environment:
-      - PGADMIN_DEFAULT_EMAIL=cheuseanghai23@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
 
 volumes:
