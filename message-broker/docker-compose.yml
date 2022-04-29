@@ -20,8 +20,6 @@ services:
     ports:
       - 9092:9092
       - 9101:9101
-    volumes:
-      - kafkadata:/var/lib/kafka/data
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
@@ -39,6 +37,7 @@ services:
       - CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS=1
       - CONFLUENT_METRICS_ENABLE=true
       - CONFLUENT_SUPPORT_CUSTOMER_ID=anonymous
+    restart: always
 
   control-center:
     container_name: control-center
@@ -56,5 +55,3 @@ services:
       - CONFLUENT_METRICS_TOPIC_REPLICATION=1
       - PORT=9021
 
-volumes:
-  kafkadata:

@@ -3,9 +3,12 @@ version: '3.7'
 services:
   config-service:
     container_name: config-service
-    image: cheuseanghai/config-server:0.0.1
+    image: cheuseanghai/config-server:0.0.3
     ports:
       - 8888:8888
     environment:
-      - SPRING_SECURITY_USER_NAME=${USERNAME}
-      - SPRING_SECURITY_USER_PASSWORD=${PASSWORD}
+      - SPRING_SECURITY_USER_NAME=${SPRING_SECURITY_USER_NAME}
+      - SPRING_SECURITY_USER_PASSWORD=${SPRING_SECURITY_USER_PASSWORD}
+      - GIT_REPO_URI=${GIT_REPO_URI}
+      - GIT_REPO_USERNAME=${GIT_REPO_USERNAME}
+      - GIT_REPO_PASSWORD=${GIT_REPO_PASSWORD}

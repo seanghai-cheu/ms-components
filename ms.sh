@@ -23,7 +23,7 @@ start_database_server()
 
 start_service_tracing()
 {
-    if [ ! -f "/service-tracing/secrets/elasticsearch.keystore" ]; then
+    if [ ! -f "service-tracing/secrets/elasticsearch.keystore" ] ; then
         printf "\n\n::::::::::::::::::: STARTING GENERATE CERTIFICATES \n";
         docker-compose -f service-tracing/docker-compose-certs-elk.yml run --rm certs-elk
     fi
